@@ -1,16 +1,18 @@
-FROM node:14-alpine as builder
+FROM node:latest
 
 ENV PROJECT_ENV production
 # ENV NODE_ENV production
 
 WORKDIR /code
 
-ADD package.json package-lock.json /code/
-RUN npm ci
+ADD . /code/
 
-ADD . /code
-RUN npm run build
+RUN npm config set registry https://registry.npm.taobao.org
+RUN npm install -g pm2@latest
+RUN npm i
 
-# 选择更小体积的基础镜像
-FROM nginx:alpine
-COPY --from=builder /code/dist /usr/share/nginx/html
+# 暴露端口映射
+EXPOSE 8087
+EXPOSE 443
+
+CMD [ "pm2-runtime", "start", "npm", "--", "run", "develop" ]
